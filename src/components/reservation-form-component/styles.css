@@ -1,0 +1,27 @@
+.align-center{
+    display: flex;
+    justify-content: center;
+    text-align: center;
+    align-self: center;
+}
+
+.style-for-row{
+    padding: 1rem;
+}
+
+.style-for-token-top{
+    padding-top: 1rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+
+.style-for-token-bottom{
+    padding-bottom: 1rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+
+.logo{
+    width: 10rem;
+    height: 10rem;
+}
