@@ -353,26 +353,26 @@ export const workshifts = [
 export const numberOfDaysSelect = [
   {
     value: 1,
-    label: "1 Day",
+    label: "1 Week",
   },
   {
     value: 2,
-    label: "2 Days",
+    label: "2 Weeks",
   },
   {
     value: 3,
-    label: "3 Days",
+    label: "3 Weeks",
   },
   {
     value: 4,
-    label: "4 Days",
+    label: "4 Weeks",
   },
   {
     value: 5,
-    label: "5 Days",
+    label: "5 Weeks",
   },
   {
     value: 6,
-    label: "6 Days",
+    label: "6 Weeks",
   },
 ];
