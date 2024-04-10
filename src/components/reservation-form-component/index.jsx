@@ -28,6 +28,7 @@ import stringConnection, {
 } from "../../config/stringConnection";
 import { api } from "../../services/api/apiConnection";
 import axios from "axios";
+import { jwtDecode } from "jwt-decode";
 
 export const ReservationFormComponent = () => {
   const [email, setEmail] = useState("@t2mlab.com");
@@ -58,6 +59,13 @@ export const ReservationFormComponent = () => {
     setNumberOfDays(e);
     setUpdateByNumberOfWeekDays(!updateByNumberOfWeekDays);
   };
+
+  const selectEmailbyToken = (e) => {
+    setAccessToken(e)
+    const decodedToken = jwtDecode(e);
+    console.log(decodedToken);
+    setEmail(decodedToken.unique_name)
+  }
 
   const getNextWeekday = (date) => {
     const weekdays = [
@@ -161,7 +169,7 @@ export const ReservationFormComponent = () => {
   };
 
   const newDate = (dateTest) => {
-    //console.log(dateTest);
+    
     const dataEscolhida = new Date(dateTest);
     setFirstDate(dataEscolhida);
     setUpdateByNumberOfWeekDays(!updateByNumberOfWeekDays);
@@ -185,15 +193,7 @@ export const ReservationFormComponent = () => {
           </Col>
         </Row>
 
-        <Row className="style-for-row">
-          <TextField
-            id="outlined-basic"
-            label="Email"
-            variant="outlined"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-        </Row>
+        
 
         <div>
           <Row className="style-for-token-top">
@@ -202,7 +202,7 @@ export const ReservationFormComponent = () => {
               label="Access Token"
               variant="outlined"
               value={accessToken}
-              onChange={(e) => setAccessToken(e.target.value)}
+              onChange={(e) => selectEmailbyToken(e.target.value)}
             />
           </Row>
           <Row className="style-for-token-bottom">
@@ -215,6 +215,16 @@ export const ReservationFormComponent = () => {
             </Button>
           </Row>
         </div>
+
+        <Row className="style-for-row">
+          <TextField
+            id="outlined-basic"
+            label="Email"
+            variant="outlined"
+            value={email}
+            disabled
+          />
+        </Row>
 
         <Row className="style-for-row">
           <Col sm>
