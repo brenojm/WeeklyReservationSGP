@@ -22,11 +22,6 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import dayjs from "dayjs";
 import { IOSSwitch } from "../../utils/utilsSwitch";
-import stringConnection, {
-    apiDev,
-    apiServer,
-} from "../../config/stringConnection";
-import { api } from "../../services/api/apiConnection";
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
 
@@ -36,12 +31,18 @@ export const ReservationFormComponent = () => {
     const [position, setPosition] = useState("A1");
     const [workshift, setWorkshift] = useState("Integral");
     const [selectedDays, setSelectedDays] = useState([
-      "Monday",
-      "Tuesday",
-      "Wednesday",
-      "Thursday",
-      "Friday",
-  ]);
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+    ]);
+    const [selectedUsers, setSelectedUsers] = useState([
+        {
+            email: "",
+            position: "",
+        },
+    ]);
     const [dates, setDates] = useState([]);
     const [firstDate, setFirstDate] = useState(new Date());
     const [numberOfWeeks, setNumberOfWeeks] = useState(1);
@@ -93,7 +94,7 @@ export const ReservationFormComponent = () => {
         //uma semana igual à o numero de dias selecionados
         //uma semana = selectedDays.length+1
 
-        while (nextDates.length < selectedDays.length*numberOfWeeks) {
+        while (nextDates.length < selectedDays.length * numberOfWeeks) {
             const nextDate = new Date(
                 date.getTime() + i * millisecondsInOneDay
             );
@@ -127,26 +128,27 @@ export const ReservationFormComponent = () => {
             Authorization: `Bearer ${accessToken}`,
         };
 
-        for (let i = 0; i < selectedDays.length*numberOfWeeks; i++) {
+        for (let i = 0; i < selectedDays.length * numberOfWeeks; i++) {
             try {
-                const response = await axios.post(
-                    devMode ? devUrl : postUrl,
-                    {
-                        userEmail: email,
-                        reservationDate: `${dates[i]}T09:00:00.485Z`,
-                        positionName: position,
-                        workshift: workshift,
-                    },
-                    {
-                        headers: headers,
-                    }
-                );
-                console.log(response);
-                if (response.status == 201) {
-                    toast.success(
-                        `Reservation: ${response.data.reservationDate} ${response.statusText}`
+                selectedUsers.forEach(async (user) => {
+                    const response = await axios.post(
+                        devMode ? devUrl : postUrl,
+                        {
+                            userEmail: user.email,
+                            reservationDate: `${dates[i]}T09:00:00.485Z`,
+                            positionName: user.position,
+                            workshift: workshift,
+                        },
+                        {
+                            headers: headers,
+                        }
                     );
-                }
+                    if (response.status == 201) {
+                        toast.success(
+                            `Reservation: ${response.data.reservationDate} ${response.statusText}`
+                        );
+                    }
+                });
             } catch (error) {
                 toast.error(
                     "Erro na requisição: " +
@@ -193,7 +195,6 @@ export const ReservationFormComponent = () => {
     };
 
     const handleDayClick = (day) => {
-        
         setSelectedDays((prevDays) => {
             if (prevDays.includes(day)) {
                 return prevDays.filter((d) => d !== day);
@@ -202,6 +203,33 @@ export const ReservationFormComponent = () => {
             }
         });
         setUpdateByNumberOfWeekDays(!updateByNumberOfWeekDays);
+    };
+
+    const addUser = () => {
+        setSelectedUsers([...selectedUsers, { email: "", position: "" }]);
+    };
+    const deleteUser = (index) => {
+        setSelectedUsers((prevUsers) =>
+            prevUsers.filter((_, i) => i !== index)
+        );
+    };
+
+    const handlePositionChange = (event, index) => {
+        const newPosition = event.target.value;
+        setSelectedUsers((prevUsers) =>
+            prevUsers.map((user, i) =>
+                i === index ? { ...user, position: newPosition } : user
+            )
+        );
+    };
+
+    const handleEmailChange = (event, index) => {
+        const newEmail = event.target.value;
+        setSelectedUsers((prevUsers) =>
+            prevUsers.map((user, i) =>
+                i === index ? { ...user, email: newEmail } : user
+            )
+        );
     };
 
     return (
@@ -244,13 +272,64 @@ export const ReservationFormComponent = () => {
                 </div>
 
                 <Row className="style-for-row">
-                    <TextField
-                        id="outlined-basic"
-                        label="Email"
-                        variant="outlined"
-                        value={email}
-                        disabled
-                    />
+                    {selectedUsers.map((user, index) => (
+                        <Row>
+                            <Col sm={6}>
+                                <div>
+                                    <TextField
+                                        id="outlined-basic"
+                                        label="Email"
+                                        variant="outlined"
+                                        value={user.email}
+                                        onChange={(e) =>
+                                            handleEmailChange(e, index)
+                                        }
+                                    />
+                                </div>
+                            </Col>
+                            <Col sm={5}>
+                                <div>
+                                    <TextField
+                                        id="outlined-select-currency"
+                                        select
+                                        label="Position"
+                                        defaultValue="A1"
+                                        helperText="Please select your position"
+                                        value={user.position}
+                                        onChange={(e) =>
+                                            handlePositionChange(e, index)
+                                        }
+                                    >
+                                        {positions.map((option) => (
+                                            <MenuItem
+                                                key={option.value}
+                                                value={option.value}
+                                            >
+                                                {option.label}
+                                            </MenuItem>
+                                        ))}
+                                    </TextField>
+                                </div>
+                            </Col>
+                            <Col sm={1}>
+                                <Button
+                                    variant="contained"
+                                    onClick={() => deleteUser(index)}
+                                >
+                                    X
+                                </Button>
+                            </Col>
+                        </Row>
+                    ))}
+                </Row>
+                <Row className="style-for-row">
+                    <Button
+                        variant="contained"
+                        // endIcon={<AiOutlineSend />}
+                        onClick={() => addUser()}
+                    >
+                        <>Add User +</>
+                    </Button>
                 </Row>
 
                 <Row className="style-for-row">
@@ -268,28 +347,7 @@ export const ReservationFormComponent = () => {
                             </DemoContainer>
                         </LocalizationProvider>
                     </Col>
-                    <Col sm>
-                        <div className="align-center">
-                            <TextField
-                                id="outlined-select-currency"
-                                select
-                                label="Position"
-                                defaultValue="A1"
-                                helperText="Please select your position"
-                                value={position}
-                                onChange={(e) => setPosition(e.target.value)}
-                            >
-                                {positions.map((option) => (
-                                    <MenuItem
-                                        key={option.value}
-                                        value={option.value}
-                                    >
-                                        {option.label}
-                                    </MenuItem>
-                                ))}
-                            </TextField>
-                        </div>
-                    </Col>
+
                     <Col sm>
                         <div className="align-center">
                             <TextField
@@ -321,6 +379,7 @@ export const ReservationFormComponent = () => {
                                 value={day}
                                 onClick={() => handleDayClick(day)}
                                 style={{
+                                    borderRadius: 5,
                                     backgroundColor: selectedDays.includes(day)
                                         ? "#1976D2"
                                         : "",
